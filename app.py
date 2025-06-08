@@ -38,28 +38,42 @@ def upload_file():
             input_path = os.path.join(UPLOAD_FOLDER, f"{unique_id}_{file.filename}")
             file.save(input_path)
 
-            # Define output filename (e.g. same base name + .mp3)
+            # Get desired output format from form (default to m4a)
+            output_format = request.form.get("output_format", "m4a").lower()
+            if output_format not in ["mp3", "m4a"]:
+                flash("Invalid output format selected.")
+                return redirect(request.url)
+
+            # Define output filename
             base_name = os.path.splitext(file.filename)[0]
-            output_filename = f"{base_name}_{unique_id}.mp3"
+            output_filename = f"{base_name}_{unique_id}.{output_format}"
             output_path = os.path.join(OUTPUT_FOLDER, output_filename)
 
-            # Run ffmpeg to extract audio only (convert to mp3)
-            # -y = overwrite if exists
+            # Base ffmpeg command
             cmd = [
                 "ffmpeg",
                 "-i", input_path,
                 "-vn",  # no video
-                "-acodec", "libmp3lame",
-                "-ab", "192k",
-                "-ar", "44100",
-                "-y",
-                output_path
+                "-y",   # overwrite if exists
             ]
+
+            # Add format-specific options
+            if output_format == "mp3":
+                cmd.extend(["-acodec", "libmp3lame", "-ab", "192k", "-ar", "44100"])
+            elif output_format == "m4a":
+                cmd.extend(["-acodec", "aac", "-b:a", "192k"]) # Using -b:a for AAC bitrate
+
+            cmd.append(output_path)
+
             try:
-                subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                print(f"Executing ffmpeg command: {' '.join(cmd)}")
+                process = subprocess.run(cmd, check=True) # Removed stdout/stderr PIPE
+                print(f"FFmpeg process completed successfully.")
             except subprocess.CalledProcessError as e:
-                # ffmpeg failed
-                flash("Error extracting audio.")
+                print(f"FFmpeg failed. Return code: {e.returncode}")
+                print(f"FFmpeg stdout: {e.stdout}")
+                print(f"FFmpeg stderr: {e.stderr}")
+                flash(f"Error extracting audio: FFmpeg failed (see logs for details).")
                 return redirect(request.url)
 
             # Send the resulting file
