@@ -7,7 +7,11 @@ A minimal, self-hosted web utility that extracts audio from uploaded video files
 - Upload any video file supported by `ffmpeg` (e.g., `.mp4`, `.mkv`, `.avi`, etc.)
 - Extracts audio only (no video) and allows selection of output format:
   - **MP3**
-  - **M4A (AAC)**
+  - **M4A (AAC)** (Default)
+- Allows selection of audio bitrate:
+  - **64 kbps**
+  - **128 kbps**
+  - **192 kbps** (Default)
 - `ffmpeg` command output is logged to the terminal (Docker logs) for easier debugging.
 - Lightweight and fast — runs entirely locally
 - No authentication (intended for private/local use)
@@ -43,9 +47,9 @@ Upload a video file and get an .mp3 audio file back.
 # 🔧 Technical Details
 Uses Flask for the web interface
 
-- Uses `ffmpeg` to extract audio. The command varies based on the selected output format:
-  - **MP3:** `ffmpeg -i input.ext -vn -acodec libmp3lame -ab 192k -ar 44100 -y output.mp3`
-  - **M4A (AAC):** `ffmpeg -i input.ext -vn -acodec aac -b:a 192k -y output.m4a`
+- Uses `ffmpeg` to extract audio. The command varies based on the selected output format and bitrate (examples shown with 192k bitrate):
+  - **MP3:** `ffmpeg -i input.ext -vn -acodec libmp3lame -ab <bitrate> -ar 44100 -y output.mp3` (e.g., `-ab 192k`)
+  - **M4A (AAC):** `ffmpeg -i input.ext -vn -acodec aac -b:a <bitrate> -y output.m4a` (e.g., `-b:a 192k`)
 - `ffmpeg` output is now directed to standard output/error, visible in Docker logs.
 - Saves uploads and outputs temporarily in `/tmp/uploads` and `/tmp/outputs` (within the container)
 - Supports common video formats:
@@ -61,6 +65,26 @@ video-to-audio/
 │   └── upload.html         # HTML upload form
 └── README.md               # This file
 ```
+
+# 📞 API Usage (e.g., with `curl`)
+
+The service can also be used programmatically via HTTP POST requests. You'll need to send `multipart/form-data` including the video file and desired parameters.
+
+**Parameters:**
+- `file`: The video file to process.
+- `output_format`: (Optional) Desired audio format. Either `mp3` or `m4a`. Defaults to `m4a`.
+- `bitrate`: (Optional) Desired audio bitrate. Options: `64k`, `128k`, `192k`. Defaults to `192k`.
+
+**Example `curl` command:**
+```bash
+curl -X POST \
+  -F "file=@/path/to/your/video.mp4" \
+  -F "output_format=mp3" \
+  -F "bitrate=128k" \
+  http://localhost:5000/ \
+  -o extracted_audio.mp3
+```
+Replace `/path/to/your/video.mp4` with the actual path to your video file and `extracted_audio.mp3` with your desired output file name. The output file extension should match the `output_format` you request.
 
 # 🧼 Cleanup Notes
 

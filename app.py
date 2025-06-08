@@ -44,6 +44,12 @@ def upload_file():
                 flash("Invalid output format selected.")
                 return redirect(request.url)
 
+            # Get desired bitrate from form (default to 192k)
+            bitrate = request.form.get("bitrate", "192k").lower()
+            if bitrate not in ["64k", "128k", "192k"]:
+                flash("Invalid bitrate selected.")
+                return redirect(request.url)
+
             # Define output filename
             base_name = os.path.splitext(file.filename)[0]
             output_filename = f"{base_name}_{unique_id}.{output_format}"
@@ -59,9 +65,9 @@ def upload_file():
 
             # Add format-specific options
             if output_format == "mp3":
-                cmd.extend(["-acodec", "libmp3lame", "-ab", "192k", "-ar", "44100"])
+                cmd.extend(["-acodec", "libmp3lame", "-ab", bitrate, "-ar", "44100"])
             elif output_format == "m4a":
-                cmd.extend(["-acodec", "aac", "-b:a", "192k"]) # Using -b:a for AAC bitrate
+                cmd.extend(["-acodec", "aac", "-b:a", bitrate])
 
             cmd.append(output_path)
 
