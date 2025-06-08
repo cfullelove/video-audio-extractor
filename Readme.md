@@ -82,3 +82,50 @@ Do not expose it to the public internet without additional security layers.
 MIT License. Do what you like — no warranty provided.
 
 Created with 💻 + ☕ for quick and simple local audio extraction.
+
+## Automated Container Image Publishing
+
+This repository is configured with a GitHub Action that automatically builds and publishes a Docker container image to the GitHub Container Registry (GHCR).
+
+### Triggers
+
+The workflow is triggered on every push to any branch and on every pull request event (e.g., opened, synchronized) in the repository.
+
+### Image Tagging
+
+Images are tagged based on the event and branch that triggered the build:
+
+*   **Pushes to `main` branch:**
+    *   `ghcr.io/cfullelove/video-audio-extractor:latest`
+    *   `ghcr.io/cfullelove/video-audio-extractor:<commit_sha_short>` (e.g., `ghcr.io/cfullelove/video-audio-extractor:abc1234`)
+*   **Pushes to other branches (e.g., `feature-branch`):**
+    *   `ghcr.io/cfullelove/video-audio-extractor:feature-branch-<commit_sha_short>` (e.g., `ghcr.io/cfullelove/video-audio-extractor:feature-branch-abc1234`)
+*   **Pull request events (e.g., for PR #123):**
+    *   `ghcr.io/cfullelove/video-audio-extractor:pr-123-<commit_sha_short>` (e.g., `ghcr.io/cfullelove/video-audio-extractor:pr-123-abc1234`)
+
+(Replace `OWNER/REPO` with the actual repository owner and name, which is `${{ github.repository }}` in the workflow.)
+
+### Using the Image
+
+You can pull the image using Docker:
+
+```bash
+# Example for the latest image from the main branch
+docker pull ghcr.io/cfullelove/video-audio-extractor:latest
+
+# Example for a specific commit on the main branch
+docker pull ghcr.io/cfullelove/video-audio-extractor:abcdefg
+
+# Example for a feature branch
+docker pull ghcr.io/cfullelove/video-audio-extractor:feature-branch-abcdefg
+
+# Example for a pull request build
+docker pull ghcr.io/cfullelove/video-audio-extractor:pr-123-abcdefg
+```
+
+To run the container:
+
+```bash
+docker run -d -p 5000:5000 ghcr.io/cfullelove/video-audio-extractor:latest
+```
+This will start the application, and it will be accessible at `http://localhost:5000`.
