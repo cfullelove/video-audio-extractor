@@ -89,17 +89,19 @@ This repository is configured with a GitHub Action that automatically builds and
 
 ### Triggers
 
-The workflow is triggered on every push to any branch in the repository.
+The workflow is triggered on every push to any branch and on every pull request event (e.g., opened, synchronized) in the repository.
 
 ### Image Tagging
 
-Images are tagged based on the branch that triggered the build:
+Images are tagged based on the event and branch that triggered the build:
 
 *   **Pushes to `main` branch:**
-    *   `ghcr.io/OWNER/REPO:latest`
-    *   `ghcr.io/OWNER/REPO:<commit_sha_short>`
+    *   `ghcr.io/cfullelove/video-audio-extractor:latest`
+    *   `ghcr.io/cfullelove/video-audio-extractor:<commit_sha_short>` (e.g., `ghcr.io/cfullelove/video-audio-extractor:abc1234`)
 *   **Pushes to other branches (e.g., `feature-branch`):**
-    *   `ghcr.io/OWNER/REPO:feature-branch-<commit_sha_short>`
+    *   `ghcr.io/cfullelove/video-audio-extractor:feature-branch-<commit_sha_short>` (e.g., `ghcr.io/cfullelove/video-audio-extractor:feature-branch-abc1234`)
+*   **Pull request events (e.g., for PR #123):**
+    *   `ghcr.io/cfullelove/video-audio-extractor:pr-123-<commit_sha_short>` (e.g., `ghcr.io/cfullelove/video-audio-extractor:pr-123-abc1234`)
 
 (Replace `OWNER/REPO` with the actual repository owner and name, which is `${{ github.repository }}` in the workflow.)
 
@@ -109,18 +111,21 @@ You can pull the image using Docker:
 
 ```bash
 # Example for the latest image from the main branch
-docker pull ghcr.io/OWNER/REPO:latest
+docker pull ghcr.io/cfullelove/video-audio-extractor:latest
 
 # Example for a specific commit on the main branch
-docker pull ghcr.io/OWNER/REPO:abcdefg
+docker pull ghcr.io/cfullelove/video-audio-extractor:abcdefg
 
 # Example for a feature branch
-docker pull ghcr.io/OWNER/REPO:feature-branch-abcdefg
+docker pull ghcr.io/cfullelove/video-audio-extractor:feature-branch-abcdefg
+
+# Example for a pull request build
+docker pull ghcr.io/cfullelove/video-audio-extractor:pr-123-abcdefg
 ```
 
 To run the container:
 
 ```bash
-docker run -d -p 5000:5000 ghcr.io/OWNER/REPO:latest
+docker run -d -p 5000:5000 ghcr.io/cfullelove/video-audio-extractor:latest
 ```
 This will start the application, and it will be accessible at `http://localhost:5000`.

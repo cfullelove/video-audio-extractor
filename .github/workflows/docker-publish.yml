@@ -1,6 +1,6 @@
 name: Docker Image CI
 
-on: [push] # Trigger on pushes to any branch
+on: [push, pull_request]
 
 jobs:
   build_and_push:
@@ -26,11 +26,15 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
-            # For main branch, use 'latest' and commit SHA
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-            type=sha,prefix=,suffix=,format=short,enable=${{ github.ref == 'refs/heads/main' }}
-            # For other branches, use branch_name-commit_SHA
-            type=ref,event=branch,prefix=,suffix=-${{ github.sha }},format=short,enable=${{ github.ref != 'refs/heads/main' }}
+            # For push to main: latest and sha-short
+            type=raw,value=latest,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+            type=sha,format=short,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+
+            # For push to other branches: branchname-sha-short (e.g., mybranch-abc1234)
+            type=ref,event=branch,suffix=-{{sha-short}},enable=${{ github.event_name == 'push' && github.ref != 'refs/heads/main' }}
+
+            # For pull requests: pr-number-sha-short (e.g., pr-123-abc1234)
+            type=ref,event=pr,suffix=-{{sha-short}}
 
 
       - name: Build and push Docker image
