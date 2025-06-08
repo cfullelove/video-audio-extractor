@@ -34,7 +34,7 @@ jobs:
             type=ref,event=branch,suffix=-{{sha-short}},enable=${{ github.event_name == 'push' && github.ref != 'refs/heads/main' }}
 
             # For pull requests: pr-number-sha-short (e.g., pr-123-abc1234)
-            type=ref,event=pr,suffix=-{{sha-short}}
+            type=sha,prefix=pr${{ github.event.number }}-,event=pr,format=short
 
 
       - name: Build and push Docker image
